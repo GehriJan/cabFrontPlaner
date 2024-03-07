@@ -34,7 +34,6 @@ class graph():
             else:
                 Z += bump.function(X, Y)
         
-        
         scene = dict(
             xaxis = dict(title='Länge', range = [0,max({self.lengthX, self.lengthY})]),
             yaxis = dict(title='Breite', range = [0,max({self.lengthX, self.lengthY})]),
