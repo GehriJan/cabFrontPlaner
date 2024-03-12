@@ -1,33 +1,10 @@
 import plotly.graph_objects as go
 import numpy as np
+import json
+from datetime import datetime
+from functions import *
 
-class bump():
-    def __init__(self, posX, posY, height, bulbiness) -> None:
-        self.posX = posX
-        self.posY = posY
-        self.height = height
-        self.bulbiness = bulbiness
-    def function(self, x, y):
-        return self.height*np.exp((-1/self.bulbiness)*(np.square(x-self.posX)+np.square(y-self.posY)))
-    
-class bumpGrid():
-    def __init__(self, posX, posY, height, density) -> None:
-        self.posX = posX
-        self.posY = posY
-        self.height = height
-        self.density = density*np.pi/100
-    def function(self, x, y):
-        return self.height*np.cos(self.density*(x-self.posX))*np.cos(self.density*(y-self.posY))
 
-       
-class rings():
-    def __init__(self, posX, posY, height, bulbiness) -> None:
-        self.posX = posX
-        self.posY = posY
-        self.height = height
-        self.bulbiness = bulbiness/np.power(10,5)
-    def function(self, x, y):
-        return self.height*np.sin(self.bulbiness*np.sqrt(((np.square(x-self.posX)+np.square(y-self.posY)))))
 
 
 class graph():
@@ -38,7 +15,6 @@ class graph():
         self.stepSize = stepSize
         self.textures = set()
         
-
     
     def plot(self):
         
@@ -47,12 +23,12 @@ class graph():
         X, Y = np.meshgrid(x, y)
         
         first = True
-        for characteristic in self.textures:
+        for texture in self.textures:
             if first == True:
-                Z = characteristic.function(X, Y)
+                Z = texture.function(X, Y)
                 first = False
             else:
-                Z += characteristic.function(X, Y)
+                Z += texture.function(X, Y)
         
         scene = dict(
             xaxis = dict(title='Breite (x)', range = [0,max({self.lengthX, self.lengthY})]),
@@ -64,22 +40,107 @@ class graph():
         fig.update_layout(title='Schrankfront Modell', scene=scene)
         
         fig.show()
-        
 
         
-if __name__ == "__main__":
-    front = graph(654, 780, 1)
-    front.textures.add(bump(0.61*front.lengthX, 0.61*front.lengthY, 30, 20000))
-    front.textures.add(bump(0.61*0.39*front.lengthX, 0.61*0.39*front.lengthY, 15, 20000))
-    front.textures.add(bump(0.61*0.7*front.lengthX, 0.61*0.7*front.lengthY, -25, 15000))
+def importGraph(path: str) -> graph:
     
-    front.textures.add(rings(-1.5*front.lengthX, 0.5*front.lengthY, 5, 5000))
-    front.textures.add(rings(-1.5*front.lengthX, 1.5*front.lengthY, 15, 9000))
+    # Read file
+    f = open(path)
+    data = json.load(f)
+    p = data["parameters"]
+    t = data["textures"]
+    
+    # Create graph
+    types: dict = {
+        "bump": bump,
+        "rings": rings,
+        "bumpGrid": bumpGrid
+    }
+    
+    g = graph(p["lengthX"], p["lengthY"], p["stepSize"])
+    for texture in t:
+        
+        # params
+        type = texture["type"]
+        posX = texture["posX"]
+        posY = texture["posY"]
+        height = texture["height"]
+        specialParam = texture["specialParam"]
+        
+        function = types[type]
+        
+        function = function(posX, posY, height, specialParam)
+        
+        g.textures.add(function)
+        
+    return g
+    
+def exportGraph(g: graph):
+    parameters = {
+            "lengthX": g.lengthX,
+            "lengthY": g.lengthY,
+            "stepSize": g.stepSize
+        }
+    
+    textures = list()
+    specialParams: dict = {
+        bump: "bulbiness",
+        rings: "density",
+        bumpGrid: "density"
+    }
+    
+    for function in g.textures:
+        
+        texture = {
+            "type": function.__class__.__name__,
+            "posX": function.posX,
+            "posY": function.posY,
+            "height": function.height,
+            "specialParam": specialParams[function.__class__]
+        }
+        textures.append(texture)
+    
+    # create final structure
+    output = dict()
+    output["parameters"] = parameters
+    output["textures"] = textures
+    
+    # export
+    exportTime = datetime.now()
+    exporttime = exportTime.strftime("%Y_%m_%d_%H:%M:%S")
+    fileName = f"graphExport_{exporttime}.json"
+    
+    
+    
+    with open(fileName, "a") as exportFile:
+        json.dump(output, exportFile)
+        exportFile.close()
+    
+    
+    
+    
+    
+    
+    
+        
+if __name__ == "__main__":
+    # front = graph(654, 780, 1)
+    #front.textures.add(bump(0.61*front.lengthX, 0.61*front.lengthY, 30, 20000))
+    #front.textures.add(bump(0.61*0.39*front.lengthX, 0.61*0.39*front.lengthY, 15, 20000))
+    #front.textures.add(bump(0.61*0.7*front.lengthX, 0.61*0.7*front.lengthY, -25, 15000))
+    
+    #front.textures.add(rings(-1.5*front.lengthX, 0.5*front.lengthY, 5, 5000))
+    #front.textures.add(rings(-1.5*front.lengthX, 1.5*front.lengthY, 15, 9000))
     #front.textures.add(rings(-15*front.lengthX, 15*front.lengthY, 15, 9000))
-    front.textures.add(rings(2*front.lengthX, 2*front.lengthY, 10, 1000))
-    front.textures.add(bumpGrid(0.5*front.lengthX, 0.5*front.lengthY, 10, 700))
+    #front.textures.add(rings(2*front.lengthX, 2*front.lengthY, 10, 1000))
+    #front.textures.add(bumpGrid(0.5*front.lengthX, 0.5*front.lengthY, 10, 700))
     #front.textures.add(bumpGrid(0.6*front.lengthX, 0.3*front.lengthY, 3, 1000))
     #front.textures.add(bumpGrid(0.9*front.lengthX, 0.1*front.lengthY, 12, 200))
     #front.textures.add(bumpGrid(0.2*front.lengthX, 0.3*front.lengthY, 8, 700))
     #front.textures.add(bumpGrid(-0.5*front.lengthX, 0.4*front.lengthY, 6, 700))
+    
+    # front = importGraph("export.json")
+    front  = importGraph("graphExport_2024_03_12_23:15:17.json")
+
     front.plot()
+    
