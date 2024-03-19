@@ -83,20 +83,23 @@ def exportGraph(g: graph):
         }
     
     textures = list()
-    specialParams: dict = {
-        bump: "bulbiness",
-        rings: "density",
-        bumpGrid: "density"
-    }
+    
+    # factor = {
+    #    bump: 1,
+    #    rings: np.power(10,5),
+    #    bumpGrid: (100/np.pi)
+    #}
     
     for function in g.textures:
+        
         
         texture = {
             "type": function.__class__.__name__,
             "posX": function.posX,
             "posY": function.posY,
             "height": function.height,
-            "specialParam": specialParams[function.__class__]
+            #"specialParam": factor[function.__class__]*function.specialParam
+            "specialParam": function.specialParam
         }
         textures.append(texture)
     
@@ -141,6 +144,6 @@ if __name__ == "__main__":
     
     # front = importGraph("export.json")
     front  = importGraph("graphExport_2024_03_12_23:15:17.json")
-
+    exportGraph(front)
     front.plot()
     
