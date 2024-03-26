@@ -17,22 +17,28 @@ class graph():
         self.borders = set()
         
     
-    def plot(self):
-        
+    def computeField(self):
         x = np.linspace(0, self.lengthX, int(np.floor(self.lengthX/self.stepSize)))
         y = np.linspace(0, self.lengthY, int(np.floor(self.lengthY/self.stepSize)))
         X, Y = np.meshgrid(x, y)
         
-        first = True
-        for texture in self.textures:            
-            if first == True:
-                Z = texture.function(X, Y)
-                first = False
-            else:
-                Z += texture.function(X, Y)
-        
+        Z = 0*X*Y
+        for i in {-1, 0, 1}:
+            for texture in self.textures:
+                cover = texture.cover.function(X,Y+self.lengthY*i) if hasattr(texture, "cover") and texture.cover != None else np.power(X, 0)*np.power(Y, 0)
+                Z += texture.function(X,Y+self.lengthY*i)*cover
+            
         for border in self.borders:
             Z *= border.function(X, Y)
+
+        return Z
+    
+    def plot(self):
+
+        x = np.linspace(0, self.lengthX, int(np.floor(self.lengthX/self.stepSize)))
+        y = np.linspace(0, self.lengthY, int(np.floor(self.lengthY/self.stepSize)))
+        X, Y = np.meshgrid(x, y)
+        Z = self.computeField()
         
         scene = dict(
             xaxis = dict(title='Breite (x)', range = [0,max({self.lengthX, self.lengthY})]),
@@ -42,7 +48,6 @@ class graph():
         fig = go.Figure(data=[go.Surface(x=X, y=Y, z=Z)])
         
         fig.update_layout(title='Schrankfront Modell', scene=scene)
-        
         fig.show()
 
         
@@ -86,16 +91,9 @@ def exportGraph(g: graph):
             "stepSize": g.stepSize
         }
     
+    
     textures = list()
-    
-    # factor = {
-    #    bump: 1,
-    #    rings: np.power(10,5),
-    #    bumpGrid: (100/np.pi)
-    #}
-    
     for function in g.textures:
-        
         
         texture = {
             "type": function.__class__.__name__,
@@ -106,6 +104,16 @@ def exportGraph(g: graph):
             "specialParam": function.specialParam
         }
         textures.append(texture)
+    
+#    borders = list()
+  #  for function in g.borders:
+  #      border = {
+  #          "direction": function.direction,
+  #          "distanceFromEdge": function.distanceFromEdge,
+  #          "steepness": function.steepness
+  #      }
+    
+    
     
     # create final structure
     output = dict()
@@ -132,20 +140,20 @@ def exportGraph(g: graph):
         
 if __name__ == "__main__":
     front = graph(654, 780, 1)
-    front.textures.add(bump(0.61*front.lengthX, 0.61*front.lengthY, 30, 20000))
-    #front.textures.add(bump(0.61*0.39*front.lengthX, 0.61*0.39*front.lengthY, 15, 20000))
+    
+    cover1 = bump(0.5*front.lengthX, 1*front.lengthY, 1, specialParam=15000)    
+    
+    
+    
+    front.textures.add(bump(0.61*front.lengthX, 0.95*front.lengthY, 30, 20000))
     front.textures.add(bump(0.61*0.7*front.lengthX, 0.61*0.7*front.lengthY, -25, 15000))
     
-    #front.textures.add(rings(-1.5*front.lengthX, 0.5*front.lengthY, 5, 5000))
-    #front.textures.add(rings(-1.5*front.lengthX, 1.5*front.lengthY, 15, 9000))
-    front.textures.add(rings(-15*front.lengthX, 15*front.lengthY, 15, 9000))
-    #front.textures.add(rings(2*front.lengthX, 2*front.lengthY, 10, 1000))
-    #front.textures.add(bumpGrid(0.5*front.lengthX, 0.5*front.lengthY, 10, 700))
-    #front.textures.add(bumpGrid(0.6*front.lengthX, 0.3*front.lengthY, 3, 1000))
-    #front.textures.add(bumpGrid(0.9*front.lengthX, 0.1*front.lengthY, 12, 200))
-    front.textures.add(bumpGrid(0.2*front.lengthX, 0.3*front.lengthY, 8, 700))
-    #front.textures.add(bumpGrid(-0.5*front.lengthX, 0.4*front.lengthY, 6, 700))
-    front.borders.add(smoothEdges("+x", 20, 0.5, front.lengthX, front.lengthY))
+    front.textures.add(rings(-1*front.lengthX, 0.5*front.lengthY, 15, 9000, cover1))
+
+
+
+    front.borders.add(smoothEdges("+x", 50, 0.2, 1, front.lengthX, front.lengthY))
+    front.borders.add(smoothEdges("-x", 50, 0.2, 1, front.lengthX, front.lengthY))
     # front = importGraph("export.json")
     #exportGraph(front)
     front.plot()
