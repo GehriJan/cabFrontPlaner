@@ -139,16 +139,17 @@ def exportGraph(g: graph):
     
         
 if __name__ == "__main__":
-    front = graph(654, 780, 1)
+    front = graph(654, 780, 5)
     
-    cover1 = bump(0.5*front.lengthX, 1*front.lengthY, 1, specialParam=15000)    
+    cover1 = bump(0.5*front.lengthX, 1*front.lengthY, 15000, 15000, 1)    
     
     
     
-    front.textures.add(bump(0.61*front.lengthX, 0.95*front.lengthY, 30, 20000))
-    front.textures.add(bump(0.61*0.7*front.lengthX, 0.61*0.7*front.lengthY, -25, 15000))
+    front.textures.add(bump(0.61*front.lengthX, 0.95*front.lengthY,20000, 1000, 30))
+    front.textures.add(bump(0.61*0.7*front.lengthX, 0.61*0.7*front.lengthY, 15000, 15000, -25))
     
-    front.textures.add(rings(-1*front.lengthX, 0.5*front.lengthY, 15, 9000, cover1))
+    front.textures.add(rings(0.5*front.lengthX, 0.5*front.lengthY, 5000, 9000, 105, cover1))
+    front.textures.add(bumpGrid(-1*front.lengthX, 0.5*front.lengthY, 1000, 9000, 15, cover1))
 
 
 

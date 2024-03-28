@@ -1,33 +1,40 @@
 import numpy as np
 
 class bump():
-    def __init__(self, posX, posY, height, specialParam) -> None: # specialParam is bulbiness
+    def __init__(self, posX, posY, factorX, factorY, height) -> None: 
         self.posX = posX
         self.posY = posY
         self.height = height
-        self.specialParam = specialParam
+        self.factorX = factorX
+        self.factorY = factorY
     def function(self, x, y):
-        return self.height*np.exp((-1/self.specialParam)*(np.square(x-self.posX)+np.square(y-self.posY)))
+        return self.height*np.exp(-1*((1/self.factorX)*np.square(x-self.posX)+(1/self.factorY)*np.square(y-self.posY)))
     
 class bumpGrid():
-    def __init__(self, posX, posY, height, specialParam, cover = None) -> None: # specialParam is density
+    def __init__(self, posX, posY, factorX, factorY, height, cover = None) -> None: 
         self.posX = posX
         self.posY = posY
         self.height = height
-        self.specialParam = specialParam
+        self.factorX = factorX
+        self.factorY = factorY
         self.cover = cover
     def function(self, x, y):
-        return self.height*np.cos((self.specialParam*np.pi/100)*(x-self.posX))*np.cos((self.specialParam*np.pi/100)*(y-self.posY))
+        factorX = self.factorX*np.pi/100
+        factorY = self.factorY*np.pi/100
+        return self.height*np.cos(factorX*(x-self.posX))*np.cos(factorY*(y-self.posY))
      
 class rings():
-    def __init__(self, posX, posY, height, specialParam, cover = None) -> None: # specialParam is density 
+    def __init__(self, posX, posY, factorX, factorY, height, cover = None) -> None: 
         self.posX = posX
         self.posY = posY
         self.height = height
-        self.specialParam = specialParam
+        self.factorX = factorX
+        self.factorY = factorY
         self.cover = cover
     def function(self, x, y):
-        return self.height*np.sin((self.specialParam/np.power(10,5))*np.sqrt(((np.square(x-self.posX)+np.square(y-self.posY)))))
+        factorX = self.factorX/np.power(10,5)
+        factorY = self.factorY/np.power(10,5)
+        return self.height*np.sin(np.sqrt(((factorX*np.square(x-self.posX)+factorY*np.square(y-self.posY)))))
 
 class smoothEdges():
     def __init__(self, direction, distanceFromEdge, steepness, numStages, graphLengthX, graphLengthY) -> None: # specialParam is density 
