@@ -140,7 +140,6 @@ def exportGraph(g: graph):
         
 if __name__ == "__main__":
     
-    front = graph(lengthX=50, lengthY=50, stepSize=0.1)
-    cover = bump(posX = 25, posY =  25, factorX = 400, factorY = 400, height = 1)
-    front.textures.add(rings(posX = 25, posY =  25, factorX = 4, factorY = 8, height = 10, cover=cover))
+    front = graph(lengthX=50, lengthY=50, stepSize=0.5)
+    front.textures.add(bump(posX=25, posY=25, factorX=10, factorY=10, height=30))
     front.plot()

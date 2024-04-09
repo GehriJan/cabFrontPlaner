@@ -12,12 +12,16 @@ class texture():
 
 class bump(texture):
     def function(self, x, y):
-        return self.height*np.exp(-1*((1/self.factorX)*np.square(x-self.posX)+(1/self.factorY)*np.square(y-self.posY)))
+        
+        factorX = np.log(2)/np.square(self.factorX)
+        factorY = np.log(2)/np.square(self.factorY)
+        
+        return self.height*np.exp(-1*(factorX*np.square(x-self.posX)+factorY*np.square(y-self.posY)))
     
 class bumpGrid(texture):
     def function(self, x, y):
-        factorX = self.factorX*np.pi/100
-        factorY = self.factorY*np.pi/100
+        factorX = (2*np.pi)/self.factorX
+        factorY = (2*np.pi)/self.factorY
         return self.height*np.cos(factorX*(x-self.posX))*np.cos(factorY*(y-self.posY))
 
 class rings(texture):
