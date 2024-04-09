@@ -139,23 +139,8 @@ def exportGraph(g: graph):
     
         
 if __name__ == "__main__":
-    front = graph(654, 780, 5)
     
-    cover1 = bump(0.5*front.lengthX, 1*front.lengthY, 15000, 15000, 1)    
-    
-    
-    
-    front.textures.add(bump(0.61*front.lengthX, 0.95*front.lengthY,20000, 1000, 30))
-    front.textures.add(bump(0.61*0.7*front.lengthX, 0.61*0.7*front.lengthY, 15000, 15000, -25))
-    
-    front.textures.add(rings(0.5*front.lengthX, 0.5*front.lengthY, 5000, 9000, 105, cover1))
-    front.textures.add(bumpGrid(-1*front.lengthX, 0.5*front.lengthY, 1000, 9000, 15, cover1))
-
-
-
-    front.borders.add(smoothEdges("+x", 50, 0.2, 1, front.lengthX, front.lengthY))
-    front.borders.add(smoothEdges("-x", 50, 0.2, 1, front.lengthX, front.lengthY))
-    # front = importGraph("export.json")
-    #exportGraph(front)
+    front = graph(lengthX=50, lengthY=50, stepSize=0.1)
+    cover = bump(posX = 25, posY =  25, factorX = 400, factorY = 400, height = 1)
+    front.textures.add(rings(posX = 25, posY =  25, factorX = 4, factorY = 8, height = 10, cover=cover))
     front.plot()
-    
