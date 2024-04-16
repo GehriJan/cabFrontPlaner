@@ -8,7 +8,7 @@ class texture():
         self.height = height
         self.factorX = factorX
         self.factorY = factorY
-        self.cover = cover
+        self.cover =  cover
 
 class bump(texture):
     def function(self, x, y):
@@ -18,11 +18,21 @@ class bump(texture):
         
         return self.height*np.exp(-1*(factorX*np.square(x-self.posX)+factorY*np.square(y-self.posY)))
     
+    def exportAutodesk(self) -> str:
+        
+        xPart = f"(log(2)/(factorX^2))*(x-posX)"
+        yPart = f"(log(2)/(factorY^2))*(y-posY)"
+        
+        return f"height*exp(-1*({xPart}+{yPart}))"
+    
 class bumpGrid(texture):
     def function(self, x, y):
         factorX = (2*np.pi)/self.factorX
         factorY = (2*np.pi)/self.factorY
         return self.height*np.cos(factorX*(x-self.posX))*np.cos(factorY*(y-self.posY))
+
+    def exportAutodesk(self) -> str:
+        return f"height*cos(factorX*(x-posX))*cos(factorY*(y-posY))"
 
 class rings(texture):
     def function(self, x, y):
@@ -30,10 +40,14 @@ class rings(texture):
         factorY = np.square((2*np.pi)/self.factorY)
         return self.height*np.cos(np.sqrt(((factorX*np.square(x-self.posX)+factorY*np.square(y-self.posY)))))
 
+    def exportAutodesk(self) -> str:
+
+        return f"height*cos(sqrt(factorX*pow((x-posX), 2)+factorY*pow((y-posY), 2)))"
+
 
 
 class smoothEdges():
-    def __init__(self, direction, distanceFromEdge, steepness, numStages, graphLengthX, graphLengthY) -> None: # specialParam is density 
+    def __init__(self, direction, distanceFromEdge, steepness, numStages, graphLengthX, graphLengthY) -> None:
         self.direction = direction
         self.distanceFromEdge = distanceFromEdge
         self.steepness = abs(steepness)
@@ -65,5 +79,28 @@ class smoothEdges():
         
         argument = np.power(argument, stairDeterminer)
         
-        return np.round(otherVariable*0+1/(1+np.exp(directionFactor*self.steepness*(argument+shift))), 8)
+        return otherVariable*0+1/(1+np.exp(directionFactor*self.steepness*(argument+shift))) #hier wurde mal round auf 8 nks entferns
+    
+    def exportAutodesk(self) -> str: # not finished
+        
+        if self.direction[0] == "-":
+            sign = "-"
+            shiftX = -self.distanceFromEdge
+            shiftY = -self.distanceFromEdge
+        else:
+            sign = "+"
+            shiftX = -self.graphLengthX+self.distanceFromEdge
+            shiftY = -self.graphLengthY+self.distanceFromEdge
+        
+        if self.direction[-1] == "x":
+            argument = "x"
+            shift = shiftX
+            otherVariable = "y"
+        else:
+            argument = "y"
+            shift = shiftY
+            otherVariable = "x"
+        
+        
+        return 
         

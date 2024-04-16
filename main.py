@@ -15,7 +15,6 @@ class graph():
         self.stepSize = stepSize
         self.textures = set()
         self.borders = set()
-        
     
     def computeField(self):
         x = np.linspace(0, self.lengthX, int(np.floor(self.lengthX/self.stepSize)))
@@ -23,7 +22,7 @@ class graph():
         X, Y = np.meshgrid(x, y)
         
         Z = 0*X*Y
-        for i in {-1, 0, 1}:
+        for i in {0}:
             for texture in self.textures:
                 cover = texture.cover.function(X,Y+self.lengthY*i) if hasattr(texture, "cover") and texture.cover != None else np.power(X, 0)*np.power(Y, 0)
                 Z += texture.function(X,Y+self.lengthY*i)*cover
@@ -50,7 +49,51 @@ class graph():
         fig.update_layout(title='Schrankfront Modell', scene=scene)
         fig.show()
 
+    def exportAutodesk(self):
+        output: str = ""
         
+        # Texturen hinzufügen
+        for i in {-1, 0, 1}:
+            for texture in self.textures:
+                output += f"+{texture.exportAutodesk()})"
+                
+                values = {
+                    "height": f"{texture.height}",
+                    "posX": f"{texture.posX}",
+                    "posY": f"{texture.posY+i*self.lengthY}",
+                    "factorX": f"{texture.factorX}",
+                    "factorY": f"{texture.factorY}"
+                }
+                
+                for text in values:
+                    output = output.replace(text, values[text])
+        
+                
+        for border in self.borders:
+            output = f"{border.exportAutodesk()}*({output})"
+        
+        
+        
+        
+        
+        
+        replacements = {
+            "--": "+",
+            ".0": ""            
+        }
+          
+        for text in replacements:
+            output = output.replace(text, replacements[text]) 
+
+        
+        return output
+                
+        
+        
+            
+        
+        
+
 def importGraph(path: str) -> graph:
     
     # Read file
@@ -140,6 +183,30 @@ def exportGraph(g: graph):
         
 if __name__ == "__main__":
     
-    front = graph(lengthX=50, lengthY=50, stepSize=0.5)
-    front.textures.add(bump(posX=25, posY=25, factorX=10, factorY=10, height=30))
+    # Graph initialisieren
+    front = graph(lengthX=800, lengthY=2*3.1415926534*500, stepSize=5)
+    
+    
+    
+    front.textures.add(bump(0.3*front.lengthX, 0.7*front.lengthY, 200, 70, 30))
+    
+    
+    
+    cover1 = bump(0.3*front.lengthX, 0.3*front.lengthY, 80, 200, 1)
+    
+    front.textures.add(rings(0.5*front.lengthX, 0.5*front.lengthY, 100, 100, 5, cover1))
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    # Kanten
+    front.borders.add(smoothEdges("-x", 30, 0.3, 1, front.lengthX, front.lengthY))
+    front.borders.add(smoothEdges("+x", 30, 0.3, 1, front.lengthX, front.lengthY))
+    
     front.plot()
+   # print(front.exportAutodesk())
