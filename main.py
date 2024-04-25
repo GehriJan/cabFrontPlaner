@@ -1,6 +1,8 @@
 import plotly.graph_objects as go
 import numpy as np
 import json
+import random
+import math
 from datetime import datetime
 from functions import *
 
@@ -22,7 +24,7 @@ class graph():
         X, Y = np.meshgrid(x, y)
         
         Z = 0*X*Y
-        for i in {0}:
+        for i in {-1, 0, 1}:
             for texture in self.textures:
                 cover = texture.cover.function(X,Y+self.lengthY*i) if hasattr(texture, "cover") and texture.cover != None else np.power(X, 0)*np.power(Y, 0)
                 Z += texture.function(X,Y+self.lengthY*i)*cover
@@ -184,29 +186,44 @@ def exportGraph(g: graph):
 if __name__ == "__main__":
     
     # Graph initialisieren
-    front = graph(lengthX=800, lengthY=2*3.1415926534*500, stepSize=5)
+    front = graph(lengthX=600, lengthY=3.1415926534*460+10+30, stepSize=5)
     
     
-    
+    # Bumps
     front.textures.add(bump(0.3*front.lengthX, 0.7*front.lengthY, 200, 70, 30))
     
     
     
-    cover1 = bump(0.3*front.lengthX, 0.3*front.lengthY, 80, 200, 1)
     
+    
+    
+    
+    
+    print("bumpList = [")
+    for i in range(20):
+
+        posX = random.randrange(math.ceil(1.3*front.lengthX))
+        posY = random.randrange(math.ceil(1.3*front.lengthY))
+        factorX = random.randrange(50, 150)
+        factorY = random.randrange(50, 150)
+        height = random.randrange(10,20)
+        
+        front.textures.add(bump(posX, posY, factorX, factorY, height))
+        print(f"\tbump({posX}, {posY}, {factorX}, {factorY}, {height}),")
+    print("]")
+      
+    # Rings
+    cover1 = bump(0.3*front.lengthX, front.lengthY, 80, 200, 1)
     front.textures.add(rings(0.5*front.lengthX, 0.5*front.lengthY, 100, 100, 5, cover1))
     
-    
-    
-    
-    
-    
-    
+    # Bumpgrids
     
     
     # Kanten
-    front.borders.add(smoothEdges("-x", 30, 0.3, 1, front.lengthX, front.lengthY))
-    front.borders.add(smoothEdges("+x", 30, 0.3, 1, front.lengthX, front.lengthY))
-    
+    front.borders.add(smoothEdges("-x", 30, 0.25, 1, front.lengthX, front.lengthY))
+    front.borders.add(smoothEdges("+x", 30, 0.25, 1, front.lengthX, front.lengthY))
+    print(f"Exportlength: {len(front.exportAutodesk())} characters.")
+    print(front.exportAutodesk().replace("y", "200"))
     front.plot()
+    
    # print(front.exportAutodesk())

@@ -3,11 +3,12 @@ import numpy as np
 
 class texture():
     def __init__(self, posX, posY, factorX, factorY, height, cover = None) -> None: 
-        self.posX = posX
-        self.posY = posY
-        self.height = height
-        self.factorX = factorX
-        self.factorY = factorY
+        accuracy = 2
+        self.posX = np.round(posX, accuracy)
+        self.posY = np.round(posY, accuracy)
+        self.height = np.round(height, accuracy)
+        self.factorX = np.round(factorX, accuracy)
+        self.factorY = np.round(factorY, accuracy)
         self.cover =  cover
 
 class bump(texture):
@@ -88,7 +89,7 @@ class smoothEdges():
             shiftX = -self.distanceFromEdge
             shiftY = -self.distanceFromEdge
         else:
-            sign = "+"
+            sign = ""
             shiftX = -self.graphLengthX+self.distanceFromEdge
             shiftY = -self.graphLengthY+self.distanceFromEdge
         
@@ -102,5 +103,5 @@ class smoothEdges():
             otherVariable = "x"
         
         
-        return 
+        return f"1/(1+pow(e,{sign}{self.steepness}*({argument}+({shift}))))"
         
