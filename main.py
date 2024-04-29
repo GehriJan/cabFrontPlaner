@@ -22,8 +22,11 @@ class graph():
         
         self.textures = set()
         self.borders = set()
+        
+        self.Z = None
+        
     
-    def computeField(self):
+    def computeBasicField(self):
         x = np.linspace(0, self.lengthX, int(np.floor(self.lengthX/self.stepSize)))
         y = np.linspace(0, self.lengthY, int(np.floor(self.lengthY/self.stepSize)))
         X, Y = np.meshgrid(x, y)
@@ -38,7 +41,11 @@ class graph():
         # Flattening the borders           
         for border in self.borders:
             Z *= border.function(X, Y)
-
+        
+        self.Z = Z
+    def compressAndRaise(self):
+        Z = self.Z
+        
         # Compress to min/max Height
         minO = np.min(Z)
         maxO = np.max(Z)
@@ -53,14 +60,17 @@ class graph():
         # Raise to normalNiveau        
         Z += self.normalNiveau
         
-        return Z
+        self.Z = Z
+    
     
     def plot(self):
 
         x = np.linspace(0, self.lengthX, int(np.floor(self.lengthX/self.stepSize)))
         y = np.linspace(0, self.lengthY, int(np.floor(self.lengthY/self.stepSize)))
         X, Y = np.meshgrid(x, y)
-        Z = self.computeField()
+        self.computeBasicField()
+        self.compressAndRaise()
+        Z = self.Z
         
         scene = dict(
             xaxis = dict(title='Breite (x)', range = [0,max({self.lengthX, self.lengthY})]),
@@ -69,7 +79,7 @@ class graph():
         
         fig = go.Figure(data=[go.Surface(x=X, y=Y, z=Z)])
         
-        title = f"SideTableSurfaceModel\n\tMin:{np.min(Z).round(2)} Max:{np.max(Z).round(2)}"
+        title = f"SideTableSurfaceModel\n\tMin:{np.min(Z).round(2)} Max:{np.max(Z).round(2)}\tStringlength: {len(self.exportAutodesk())}"
         fig.update_layout(title=title, scene=scene)
         fig.show()
 
@@ -92,18 +102,43 @@ class graph():
                 for text in values:
                     output = output.replace(text, values[text])
         
-                
+        # Flatten borders        
         for border in self.borders:
             output = f"{border.exportAutodesk()}*({output})"
         
+        # compress
+        self.computeBasicField()
+        
+        #minO = np.min(self.Z)
         
         
+        #extrema = {
+        #    "minO": str(np.round(np.min(self.Z),2)),
+        #    "maxO": str(np.round(np.max(self.Z),2)),
+        #    "minN": str(self.minHeight),
+        #    "maxN": str(self.maxHeight),
+        #}
+        
+        #output = f"(minN*maxO-maxN*minO)/(minO*minO*maxO-maxO*maxO*minO)*pow({output},2)+(maxN*minO*minO-minN*maxO*maxO)/(maxO*minO*minO-minO*maxO*maxO)*{output}"
+
+        #for key, value in extrema.items():
+        #    output = output.replace(key, value)
         
         
+        minO = np.min(self.Z)
+        maxO = np.max(self.Z)
+        minN = self.minHeight
+        maxN = self.maxHeight
+        a = np.round((minN*maxO-maxN*minO)/(minO*minO*maxO-maxO*maxO*minO), 5)
+        b = np.round((maxN*minO*minO-minN*maxO*maxO)/(maxO*minO*minO-minO*maxO*maxO), 5)
+        
+        output = f"{a}*pow({output},2)+{b}*{output}"
+        
+        # Raising
+        output = f"{output}+{self.normalNiveau}"
         
         replacements = {
-            "--": "+",
-            ".0": ""            
+            "--": "+"          
         }
           
         for text in replacements:
